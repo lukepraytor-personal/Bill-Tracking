@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1724" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bills" />
+  <title>Bill Tracker</title>
+
+  <!-- PWA Manifest inline -->
+  <link rel="manifest" href="manifest.json" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1724;
+      --surface: #141f35;
+      --surface2: #1a2744;
+      --border: #1e2d4a;
+      --border2: #2a3f6f;
+      --text: #e8edf5;
+      --muted: #4a6fa5;
+      --green: #22c55e;
+      --green-light: #4ade80;
+      --green-dark: #166534;
+      --green-bg: #0d1f0f;
+      --amber: #f59e0b;
+      --blue: #1d4ed8;
+      --red: #ef4444;
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    #header {
+      background: linear-gradient(135deg, var(--surface2) 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: calc(var(--safe-top) + 20px) 20px 20px;
+    }
+
+    #app-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    #month-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    #month-label {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .nav-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Summary cards */
+    #summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .summary-card .s-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .summary-card .s-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Progress */
+    #progress-wrap { }
+    #progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    #progress-bar-bg {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #16a34a);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* Bill list */
+    #bill-list {
+      padding: 16px 16px 0;
+    }
+
+    #empty-msg {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 0;
+      font-size: 14px;
+      display: none;
+    }
+
+    .bill-card {
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      transition: background 0.2s, border-color 0.2s;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .bill-card.paid {
+      background: var(--green-bg);
+      border-color: var(--green-dark);
+    }
+
+    .bill-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .check-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 2px solid var(--border2);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      font-size: 14px;
+      color: var(--bg);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .check-btn.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .bill-info { flex: 1; min-width: 0; }
+
+    .bill-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bill-name.paid-text {
+      color: var(--green-light);
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .bill-due {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .bill-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .bill-amount.paid-amount {
+      color: var(--green-light);
+      opacity: 0.6;
+    }
+
+    .bill-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .icon-btn.del { color: var(--red); }
+
+    /* Edit form inside card */
+    .edit-form input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .edit-form .row2 {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .edit-form .row2 input { flex: 1; }
+
+    .edit-form .btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* Add bill */
+    #add-form {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    #add-form.open { display: block; }
+
+    #add-form .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    #add-form input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    #add-form .row2 {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #add-form .row2 input { flex: 1; }
+
+    #add-form .btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    #add-trigger {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: 1px dashed var(--border2);
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--blue);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-ghost {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="app-label">Bill Tracker</div>
+  <div id="month-nav">
+    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+    <span id="month-label"></span>
+    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+  <div id="summary">
+    <div class="summary-card">
+      <div class="s-label">Total Due</div>
+      <div class="s-value" id="s-total" style="color:#4a6fa5">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Paid</div>
+      <div class="s-value" id="s-paid" style="color:#22c55e">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Left</div>
+      <div class="s-value" id="s-left" style="color:#f59e0b">—</div>
+    </div>
+  </div>
+  <div id="progress-wrap">
+    <div id="progress-meta">
+      <span id="p-text">0 of 0 paid</span>
+      <span id="p-pct">0%</span>
+    </div>
+    <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+  </div>
+</div>
+
+<div id="bill-list">
+  <div id="empty-msg">No bills yet. Add one below.</div>
+
+  <div id="add-form">
+    <div class="form-label">New Bill</div>
+    <input id="new-name" type="text" placeholder="Bill name (e.g. Water)" />
+    <div class="row2">
+      <input id="new-amount" type="number" placeholder="Amount ($)" />
+      <input id="new-due" type="number" placeholder="Due day (1–31)" min="1" max="31" />
+    </div>
+    <div class="btns">
+      <button class="btn-primary" onclick="addBill()">Add Bill</button>
+      <button class="btn-ghost" onclick="closeAddForm()">Cancel</button>
+    </div>
+  </div>
+
+  <button id="add-trigger" onclick="openAddForm()">
+    <span style="font-size:18px;line-height:1">+</span> Add Bill
+  </button>
+</div>
+
+<script>
+  const STORAGE_KEY = 'bill-tracker-v1';
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  let monthOffset = 0;
+  let appData = {};
+
+  function getMonthKey(offset = 0) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + offset);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function getMonthLabel(offset = 0) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + offset);
+    return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function ordinal(n) {
+    const num = parseInt(n);
+    if ([1,21,31].includes(num)) return 'st';
+    if ([2,22].includes(num)) return 'nd';
+    if ([3,23].includes(num)) return 'rd';
+    return 'th';
+  }
+
+  function fmt(n) {
+    return n > 0 ? `$${n.toFixed(2)}` : '—';
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      appData = raw ? JSON.parse(raw) : {};
+    } catch { appData = {}; }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    } catch(e) { console.error('Save failed', e); }
+  }
+
+  function ensureMonth(key) {
+    if (!appData[key]) {
+      // Copy bills from previous month
+      const prevKey = (() => {
+        const [y, m] = key.split('-').map(Number);
+        const d = new Date(y, m - 2);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      })();
+      const srcBills = appData[prevKey]?.bills || [
+        { id: 1, name: 'Rent / Mortgage', amount: '', due: '1' },
+        { id: 2, name: 'Electric', amount: '', due: '15' },
+        { id: 3, name: 'Internet', amount: '', due: '20' },
+      ];
+      appData[key] = { bills: srcBills.map(b => ({...b})), paid: {} };
+      save();
+    }
+  }
+
+  function getCurrentMonth() {
+    const key = getMonthKey(monthOffset);
+    ensureMonth(key);
+    return appData[key];
+  }
+
+  function render() {
+    const key = getMonthKey(monthOffset);
+    ensureMonth(key);
+    const { bills, paid } = appData[key];
+
+    document.getElementById('month-label').textContent = getMonthLabel(monthOffset);
+
+    // Summary
+    const totalDue = bills.reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
+    const totalPaid = bills.filter(b => paid[b.id]).reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
+    const remaining = totalDue - totalPaid;
+    const paidCount = bills.filter(b => paid[b.id]).length;
+
+    document.getElementById('s-total').textContent = fmt(totalDue);
+    document.getElementById('s-paid').textContent = fmt(totalPaid);
+    const leftEl = document.getElementById('s-left');
+    leftEl.textContent = fmt(remaining);
+    leftEl.style.color = remaining > 0 ? '#f59e0b' : '#22c55e';
+
+    // Progress
+    const pct = bills.length > 0 ? Math.round((paidCount / bills.length) * 100) : 0;
+    document.getElementById('p-text').textContent = `${paidCount} of ${bills.length} paid`;
+    document.getElementById('p-pct').textContent = `${pct}%`;
+    document.getElementById('progress-bar').style.width = `${pct}%`;
+
+    // Bill cards
+    // Remove old cards (keep add-form and add-trigger)
+    document.querySelectorAll('.bill-card').forEach(el => el.remove());
+    document.getElementById('empty-msg').style.display = bills.length === 0 ? 'block' : 'none';
+
+    const list = document.getElementById('bill-list');
+    const addForm = document.getElementById('add-form');
+    const addTrigger = document.getElementById('add-trigger');
+
+    bills.forEach(bill => {
+      const isPaid = !!paid[bill.id];
+      const card = document.createElement('div');
+      card.className = 'bill-card' + (isPaid ? ' paid' : '');
+      card.dataset.id = bill.id;
+
+      card.innerHTML = `
+        <div class="bill-row">
+          <button class="check-btn ${isPaid ? 'checked' : ''}" onclick="togglePaid(${bill.id})">
+            ${isPaid ? '✓' : ''}
+          </button>
+          <div class="bill-info">
+            <div class="bill-name ${isPaid ? 'paid-text' : ''}">${escHtml(bill.name)}</div>
+            <div class="bill-due">${bill.due ? `Due: ${bill.due}${ordinal(bill.due)}` : 'No due date'}</div>
+          </div>
+          <div class="bill-amount ${isPaid ? 'paid-amount' : ''}">
+            ${bill.amount ? `$${parseFloat(bill.amount).toFixed(2)}` : '—'}
+          </div>
+          <div class="bill-actions">
+            <button class="icon-btn" onclick="startEdit(${bill.id})" title="Edit">✎</button>
+            <button class="icon-btn del" onclick="deleteBill(${bill.id})" title="Delete">✕</button>
+          </div>
+        </div>
+      `;
+
+      list.insertBefore(card, addForm);
+    });
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function changeMonth(dir) {
+    monthOffset += dir;
+    closeAddForm();
+    render();
+  }
+
+  function togglePaid(id) {
+    const key = getMonthKey(monthOffset);
+    appData[key].paid[id] = !appData[key].paid[id];
+    save();
+    render();
+  }
+
+  function deleteBill(id) {
+    if (!confirm('Delete this bill?')) return;
+    const key = getMonthKey(monthOffset);
+    appData[key].bills = appData[key].bills.filter(b => b.id !== id);
+    delete appData[key].paid[id];
+    save();
+    render();
+  }
+
+  function startEdit(id) {
+    const key = getMonthKey(monthOffset);
+    const bill = appData[key].bills.find(b => b.id === id);
+    if (!bill) return;
+
+    const card = document.querySelector(`.bill-card[data-id="${id}"]`);
+    card.innerHTML = `
+      <div class="edit-form">
+        <input id="edit-name-${id}" type="text" value="${escHtml(bill.name)}" placeholder="Bill name" />
+        <div class="row2">
+          <input id="edit-amount-${id}" type="number" value="${bill.amount}" placeholder="Amount ($)" />
+          <input id="edit-due-${id}" type="number" value="${bill.due}" placeholder="Due day" min="1" max="31" />
+        </div>
+        <div class="btns">
+          <button class="btn-primary" onclick="saveEdit(${id})">Save</button>
+          <button class="btn-ghost" onclick="render()">Cancel</button>
+        </div>
+      </div>
+    `;
+    document.getElementById(`edit-name-${id}`).focus();
+  }
+
+  function saveEdit(id) {
+    const key = getMonthKey(monthOffset);
+    const bill = appData[key].bills.find(b => b.id === id);
+    if (!bill) return;
+    bill.name = document.getElementById(`edit-name-${id}`).value.trim() || bill.name;
+    bill.amount = document.getElementById(`edit-amount-${id}`).value;
+    bill.due = document.getElementById(`edit-due-${id}`).value;
+    save();
+    render();
+  }
+
+  function openAddForm() {
+    document.getElementById('add-form').classList.add('open');
+    document.getElementById('add-trigger').style.display = 'none';
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-amount').value = '';
+    document.getElementById('new-due').value = '';
+    document.getElementById('new-name').focus();
+  }
+
+  function closeAddForm() {
+    document.getElementById('add-form').classList.remove('open');
+    document.getElementById('add-trigger').style.display = 'flex';
+  }
+
+  function addBill() {
+    const name = document.getElementById('new-name').value.trim();
+    if (!name) { document.getElementById('new-name').focus(); return; }
+    const amount = document.getElementById('new-amount').value;
+    const due = document.getElementById('new-due').value;
+    const key = getMonthKey(monthOffset);
+    appData[key].bills.push({ id: Date.now(), name, amount, due });
+    save();
+    closeAddForm();
+    render();
+  }
+
+  // Allow Enter key to submit add form
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('add-form').classList.contains('open')) {
+      addBill();
+    }
+  });
+
+  // Init
+  load();
+  render();
+</script>
+
+</body>
+</html>
