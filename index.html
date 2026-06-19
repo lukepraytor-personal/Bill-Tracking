@@ -555,9 +555,11 @@
     const current = appData[key];
 
     prevBills.forEach(prevBill => {
-      const match = current.bills.find(b => b.name.toLowerCase() === prevBill.name.toLowerCase());
+      const prevNameLower = prevBill.name.toLowerCase().trim();
+      const match = current.bills.find(b => b.name.toLowerCase().trim() === prevNameLower);
       if (match) {
-        // Update existing bill's amount/due/category, leave paid status untouched
+        // Update existing bill's name/amount/due/category, leave paid status untouched
+        match.name = prevBill.name;
         match.amount = prevBill.amount;
         match.due = prevBill.due;
         match.category = prevBill.category;
