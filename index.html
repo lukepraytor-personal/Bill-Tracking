@@ -492,7 +492,7 @@
 
 <script>
   const STORAGE_KEY = 'bill-tracker-v1';
-  const API_KEY = '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';
+  const API_KEY = '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';
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const CATEGORIES = ['Housing', 'Credit Cards', 'Utilities', 'Subscriptions', 'Other'];
 
@@ -850,6 +850,11 @@ Rules:
         })
       });
 
+      if (!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errBody.slice(0, 200)}`);
+      }
+
       const data = await res.json();
       const raw = data.content?.[0]?.text || '';
       const clean = raw.replace(/```json|```/g, '').trim();
@@ -873,7 +878,7 @@ Rules:
       document.getElementById('ai-confirm-btns').style.display = 'block';
 
     } catch(e) {
-      status.textContent = '⚠ Something went wrong. Try again.';
+      status.textContent = '⚠ ' + e.message;
       document.getElementById('ai-btns').style.display = 'flex';
       console.error(e);
     }
