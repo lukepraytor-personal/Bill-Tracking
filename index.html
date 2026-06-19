@@ -9,8 +9,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Bills" />
   <title>Bill Tracker</title>
-
-  <!-- PWA Manifest inline -->
   <link rel="manifest" href="manifest.json" />
 
   <style>
@@ -31,6 +29,7 @@
       --amber: #f59e0b;
       --blue: #1d4ed8;
       --red: #ef4444;
+      --purple: #7c3aed;
       --safe-top: env(safe-area-inset-top, 0px);
     }
 
@@ -43,7 +42,6 @@
       padding-bottom: 60px;
     }
 
-    /* Header */
     #header {
       background: linear-gradient(135deg, var(--surface2) 0%, var(--bg) 100%);
       border-bottom: 1px solid var(--border);
@@ -89,7 +87,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Summary cards */
     #summary {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -113,13 +110,8 @@
       margin-bottom: 4px;
     }
 
-    .summary-card .s-value {
-      font-size: 16px;
-      font-weight: 700;
-    }
+    .summary-card .s-value { font-size: 16px; font-weight: 700; }
 
-    /* Progress */
-    #progress-wrap { }
     #progress-meta {
       display: flex;
       justify-content: space-between;
@@ -127,12 +119,14 @@
       color: var(--muted);
       margin-bottom: 5px;
     }
+
     #progress-bar-bg {
       height: 4px;
       background: var(--border);
       border-radius: 2px;
       overflow: hidden;
     }
+
     #progress-bar {
       height: 100%;
       background: linear-gradient(90deg, var(--green), #16a34a);
@@ -141,10 +135,7 @@
       width: 0%;
     }
 
-    /* Bill list */
-    #bill-list {
-      padding: 16px 16px 0;
-    }
+    #bill-list { padding: 16px 16px 0; }
 
     #empty-msg {
       text-align: center;
@@ -168,163 +159,85 @@
       border-color: var(--green-dark);
     }
 
-    .bill-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .bill-row { display: flex; align-items: center; gap: 12px; }
 
     .check-btn {
-      width: 26px;
-      height: 26px;
+      width: 26px; height: 26px;
       border-radius: 6px;
       border: 2px solid var(--border2);
       background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
       transition: all 0.15s;
-      font-size: 14px;
-      color: var(--bg);
+      font-size: 14px; color: var(--bg);
       -webkit-tap-highlight-color: transparent;
     }
 
-    .check-btn.checked {
-      background: var(--green);
-      border-color: var(--green);
-    }
+    .check-btn.checked { background: var(--green); border-color: var(--green); }
 
     .bill-info { flex: 1; min-width: 0; }
 
     .bill-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    .bill-name.paid-text {
-      color: var(--green-light);
-      text-decoration: line-through;
-      opacity: 0.7;
-    }
-
-    .bill-due {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .bill-amount {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      flex-shrink: 0;
-    }
-
-    .bill-amount.paid-amount {
-      color: var(--green-light);
-      opacity: 0.6;
-    }
-
+    .bill-name.paid-text { color: var(--green-light); text-decoration: line-through; opacity: 0.7; }
+    .bill-due { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .bill-amount { font-size: 16px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+    .bill-amount.paid-amount { color: var(--green-light); opacity: 0.6; }
     .bill-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
     .icon-btn {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 15px;
-      padding: 4px 6px;
-      border-radius: 6px;
+      background: transparent; border: none; color: var(--muted);
+      cursor: pointer; font-size: 15px; padding: 4px 6px; border-radius: 6px;
       -webkit-tap-highlight-color: transparent;
     }
 
     .icon-btn.del { color: var(--red); }
 
-    /* Edit form inside card */
     .edit-form input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 12px;
-      font-size: 14px;
-      outline: none;
-      font-family: inherit;
+      width: 100%; background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 8px; color: var(--text); padding: 10px 12px;
+      font-size: 14px; outline: none; font-family: inherit;
     }
 
-    .edit-form .row2 {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
+    .edit-form .row2 { display: flex; gap: 8px; margin-top: 8px; }
     .edit-form .row2 input { flex: 1; }
+    .edit-form .btns { display: flex; gap: 8px; margin-top: 10px; }
 
-    .edit-form .btns {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    /* Add bill */
+    /* Add bill form */
     #add-form {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 10px;
-      display: none;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 16px; margin-bottom: 10px; display: none;
     }
 
     #add-form.open { display: block; }
-
-    #add-form .form-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
+    #add-form .form-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
 
     #add-form input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 12px;
-      font-size: 14px;
-      outline: none;
-      font-family: inherit;
+      width: 100%; background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 8px; color: var(--text); padding: 10px 12px;
+      font-size: 14px; outline: none; font-family: inherit;
     }
 
-    #add-form .row2 {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
+    #add-form .row2 { display: flex; gap: 8px; margin-top: 8px; }
     #add-form .row2 input { flex: 1; }
+    #add-form .btns { display: flex; gap: 8px; margin-top: 12px; }
 
-    #add-form .btns {
+    /* Bottom action buttons */
+    #action-bar {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-bottom: 0;
     }
 
-    #add-trigger {
-      width: 100%;
+    #add-trigger, #ai-trigger {
+      flex: 1;
       padding: 13px;
       border-radius: 12px;
       border: 1px dashed var(--border2);
       background: transparent;
-      color: var(--muted);
       font-size: 14px;
       cursor: pointer;
       display: flex;
@@ -333,32 +246,116 @@
       gap: 6px;
       font-family: inherit;
       -webkit-tap-highlight-color: transparent;
+      color: var(--muted);
     }
 
-    .btn-primary {
-      flex: 1;
-      background: var(--blue);
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      padding: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
+    #ai-trigger {
+      border-color: #4c1d95;
+      color: #a78bfa;
+    }
+
+    /* AI Quick Entry modal */
+    #ai-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    #ai-overlay.open { display: flex; }
+
+    #ai-sheet {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 40px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    #ai-sheet h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    #ai-sheet p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    #ai-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 15px;
+      outline: none;
       font-family: inherit;
+      resize: none;
+      min-height: 80px;
+    }
+
+    #ai-result {
+      display: none;
+      margin-top: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    #ai-result .r-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    #ai-result .r-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+    #ai-result .r-key { color: var(--muted); }
+    #ai-result .r-val { font-weight: 600; }
+
+    #ai-status {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+      min-height: 20px;
+      text-align: center;
+    }
+
+    #ai-btns { display: flex; gap: 8px; margin-top: 12px; }
+
+    .btn-primary {
+      flex: 1; background: var(--blue); border: none; border-radius: 8px;
+      color: #fff; padding: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+
+    .btn-purple {
+      flex: 1; background: var(--purple); border: none; border-radius: 8px;
+      color: #fff; padding: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
     }
 
     .btn-ghost {
-      flex: 1;
-      background: transparent;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      color: var(--muted);
-      padding: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      font-family: inherit;
+      flex: 1; background: transparent; border: 1px solid var(--border2);
+      border-radius: 8px; color: var(--muted); padding: 10px; font-size: 14px;
+      cursor: pointer; font-family: inherit;
     }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -409,17 +406,51 @@
     </div>
   </div>
 
-  <button id="add-trigger" onclick="openAddForm()">
-    <span style="font-size:18px;line-height:1">+</span> Add Bill
-  </button>
+  <div id="action-bar">
+    <button id="add-trigger" onclick="openAddForm()">
+      <span style="font-size:18px;line-height:1">+</span> Add Bill
+    </button>
+    <button id="ai-trigger" onclick="openAI()">
+      ✦ Quick Entry
+    </button>
+  </div>
+</div>
+
+<!-- AI Quick Entry Sheet -->
+<div id="ai-overlay" onclick="handleOverlayClick(event)">
+  <div id="ai-sheet">
+    <h3>✦ Quick Entry</h3>
+    <p>Just tell me what you paid — I'll figure out the rest.</p>
+    <textarea id="ai-input" placeholder='e.g. "Paid electric bill today, it was $170" or "Add water bill due on the 8th"'></textarea>
+    <div id="ai-result">
+      <div class="r-label">Parsed Info</div>
+      <div class="r-row"><span class="r-key">Bill</span><span class="r-val" id="r-name">—</span></div>
+      <div class="r-row"><span class="r-key">Amount</span><span class="r-val" id="r-amount">—</span></div>
+      <div class="r-row"><span class="r-key">Due Day</span><span class="r-val" id="r-due">—</span></div>
+      <div class="r-row"><span class="r-key">Action</span><span class="r-val" id="r-action">—</span></div>
+    </div>
+    <div id="ai-status"></div>
+    <div id="ai-btns">
+      <button class="btn-purple" onclick="runAI()">Parse It</button>
+      <button class="btn-ghost" onclick="closeAI()">Cancel</button>
+    </div>
+    <div id="ai-confirm-btns" style="display:none; margin-top:8px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primary" onclick="applyAIResult()">Apply</button>
+        <button class="btn-ghost" onclick="resetAI()">Try Again</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
   const STORAGE_KEY = 'bill-tracker-v1';
+  const API_KEY = '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';
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   let monthOffset = 0;
   let appData = {};
+  let aiParsed = null;
 
   function getMonthKey(offset = 0) {
     const d = new Date();
@@ -441,9 +472,7 @@
     return 'th';
   }
 
-  function fmt(n) {
-    return n > 0 ? `$${n.toFixed(2)}` : '—';
-  }
+  function fmt(n) { return n > 0 ? `$${n.toFixed(2)}` : '—'; }
 
   function load() {
     try {
@@ -453,14 +482,12 @@
   }
 
   function save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-    } catch(e) { console.error('Save failed', e); }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+    catch(e) { console.error('Save failed', e); }
   }
 
   function ensureMonth(key) {
     if (!appData[key]) {
-      // Copy bills from previous month
       const prevKey = (() => {
         const [y, m] = key.split('-').map(Number);
         const d = new Date(y, m - 2);
@@ -476,12 +503,6 @@
     }
   }
 
-  function getCurrentMonth() {
-    const key = getMonthKey(monthOffset);
-    ensureMonth(key);
-    return appData[key];
-  }
-
   function render() {
     const key = getMonthKey(monthOffset);
     ensureMonth(key);
@@ -489,7 +510,6 @@
 
     document.getElementById('month-label').textContent = getMonthLabel(monthOffset);
 
-    // Summary
     const totalDue = bills.reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
     const totalPaid = bills.filter(b => paid[b.id]).reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
     const remaining = totalDue - totalPaid;
@@ -501,20 +521,16 @@
     leftEl.textContent = fmt(remaining);
     leftEl.style.color = remaining > 0 ? '#f59e0b' : '#22c55e';
 
-    // Progress
     const pct = bills.length > 0 ? Math.round((paidCount / bills.length) * 100) : 0;
     document.getElementById('p-text').textContent = `${paidCount} of ${bills.length} paid`;
     document.getElementById('p-pct').textContent = `${pct}%`;
     document.getElementById('progress-bar').style.width = `${pct}%`;
 
-    // Bill cards
-    // Remove old cards (keep add-form and add-trigger)
     document.querySelectorAll('.bill-card').forEach(el => el.remove());
     document.getElementById('empty-msg').style.display = bills.length === 0 ? 'block' : 'none';
 
     const list = document.getElementById('bill-list');
-    const addForm = document.getElementById('add-form');
-    const addTrigger = document.getElementById('add-trigger');
+    const actionBar = document.getElementById('action-bar');
 
     bills.forEach(bill => {
       const isPaid = !!paid[bill.id];
@@ -541,7 +557,7 @@
         </div>
       `;
 
-      list.insertBefore(card, addForm);
+      list.insertBefore(card, document.getElementById('add-form'));
     });
   }
 
@@ -558,8 +574,7 @@
   function togglePaid(id) {
     const key = getMonthKey(monthOffset);
     appData[key].paid[id] = !appData[key].paid[id];
-    save();
-    render();
+    save(); render();
   }
 
   function deleteBill(id) {
@@ -567,15 +582,13 @@
     const key = getMonthKey(monthOffset);
     appData[key].bills = appData[key].bills.filter(b => b.id !== id);
     delete appData[key].paid[id];
-    save();
-    render();
+    save(); render();
   }
 
   function startEdit(id) {
     const key = getMonthKey(monthOffset);
     const bill = appData[key].bills.find(b => b.id === id);
     if (!bill) return;
-
     const card = document.querySelector(`.bill-card[data-id="${id}"]`);
     card.innerHTML = `
       <div class="edit-form">
@@ -600,8 +613,7 @@
     bill.name = document.getElementById(`edit-name-${id}`).value.trim() || bill.name;
     bill.amount = document.getElementById(`edit-amount-${id}`).value;
     bill.due = document.getElementById(`edit-due-${id}`).value;
-    save();
-    render();
+    save(); render();
   }
 
   function openAddForm() {
@@ -625,17 +637,153 @@
     const due = document.getElementById('new-due').value;
     const key = getMonthKey(monthOffset);
     appData[key].bills.push({ id: Date.now(), name, amount, due });
-    save();
-    closeAddForm();
-    render();
+    save(); closeAddForm(); render();
   }
 
-  // Allow Enter key to submit add form
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && document.getElementById('add-form').classList.contains('open')) {
-      addBill();
-    }
+    if (e.key === 'Enter' && document.getElementById('add-form').classList.contains('open')) addBill();
   });
+
+  // ── AI Quick Entry ──────────────────────────────────
+
+  function openAI() {
+    document.getElementById('ai-overlay').classList.add('open');
+    document.getElementById('ai-input').value = '';
+    document.getElementById('ai-result').style.display = 'none';
+    document.getElementById('ai-status').textContent = '';
+    document.getElementById('ai-btns').style.display = 'flex';
+    document.getElementById('ai-confirm-btns').style.display = 'none';
+    aiParsed = null;
+    setTimeout(() => document.getElementById('ai-input').focus(), 100);
+  }
+
+  function closeAI() {
+    document.getElementById('ai-overlay').classList.remove('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('ai-overlay')) closeAI();
+  }
+
+  function resetAI() {
+    document.getElementById('ai-result').style.display = 'none';
+    document.getElementById('ai-status').textContent = '';
+    document.getElementById('ai-btns').style.display = 'flex';
+    document.getElementById('ai-confirm-btns').style.display = 'none';
+    document.getElementById('ai-input').focus();
+    aiParsed = null;
+  }
+
+  async function runAI() {
+    const text = document.getElementById('ai-input').value.trim();
+    if (!text) { document.getElementById('ai-input').focus(); return; }
+
+    const key = getMonthKey(monthOffset);
+    const { bills } = appData[key];
+    const billNames = bills.map(b => b.name).join(', ');
+
+    const status = document.getElementById('ai-status');
+    status.innerHTML = '<span class="spinner"></span> Thinking...';
+    document.getElementById('ai-btns').style.display = 'none';
+
+    const systemPrompt = `You are a bill tracking assistant. Extract bill info from the user's message and return ONLY a JSON object with no markdown, no explanation.
+
+Current bills in the tracker: ${billNames || 'none yet'}
+
+Return this exact JSON shape:
+{
+  "action": "mark_paid" | "add_new" | "update",
+  "name": "bill name (match existing name if possible)",
+  "amount": 123.45 or null,
+  "due": "day of month as number string like 8" or null,
+  "matched_existing": true or false
+}
+
+Rules:
+- If they say they paid something, action = "mark_paid"
+- If it's a new bill not in the list, action = "add_new"  
+- If they're updating info on an existing bill, action = "update"
+- Match bill names loosely (electric = Electric, rent = Rent / Mortgage)
+- Only return the JSON object, nothing else`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: text }]
+        })
+      });
+
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || '';
+      const clean = raw.replace(/```json|```/g, '').trim();
+      aiParsed = JSON.parse(clean);
+
+      // Show result
+      document.getElementById('r-name').textContent = aiParsed.name || '—';
+      document.getElementById('r-amount').textContent = aiParsed.amount != null ? `$${parseFloat(aiParsed.amount).toFixed(2)}` : '—';
+      document.getElementById('r-due').textContent = aiParsed.due ? `${aiParsed.due}${ordinal(aiParsed.due)} of month` : '—';
+
+      const actionLabels = {
+        mark_paid: '✓ Mark as paid',
+        add_new: '+ Add new bill',
+        update: '✎ Update existing bill'
+      };
+      document.getElementById('r-action').textContent = actionLabels[aiParsed.action] || aiParsed.action;
+
+      document.getElementById('ai-result').style.display = 'block';
+      status.textContent = 'Does this look right?';
+      document.getElementById('ai-confirm-btns').style.display = 'block';
+
+    } catch(e) {
+      status.textContent = '⚠ Something went wrong. Try again.';
+      document.getElementById('ai-btns').style.display = 'flex';
+      console.error(e);
+    }
+  }
+
+  function applyAIResult() {
+    if (!aiParsed) return;
+    const key = getMonthKey(monthOffset);
+    const { bills, paid } = appData[key];
+
+    if (aiParsed.action === 'mark_paid') {
+      // Find matching bill
+      const match = bills.find(b => b.name.toLowerCase().includes(aiParsed.name.toLowerCase())
+        || aiParsed.name.toLowerCase().includes(b.name.toLowerCase().split(' ')[0]));
+      if (match) {
+        if (aiParsed.amount != null) match.amount = String(aiParsed.amount);
+        appData[key].paid[match.id] = true;
+      } else {
+        // Bill doesn't exist yet — add it and mark paid
+        const id = Date.now();
+        appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '' });
+        appData[key].paid[id] = true;
+      }
+    } else if (aiParsed.action === 'add_new') {
+      const id = Date.now();
+      appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '' });
+    } else if (aiParsed.action === 'update') {
+      const match = bills.find(b => b.name.toLowerCase().includes(aiParsed.name.toLowerCase().split(' ')[0]));
+      if (match) {
+        if (aiParsed.amount != null) match.amount = String(aiParsed.amount);
+        if (aiParsed.due) match.due = aiParsed.due;
+      }
+    }
+
+    save();
+    closeAI();
+    render();
+  }
 
   // Init
   load();
