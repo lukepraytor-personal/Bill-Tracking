@@ -87,6 +87,11 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    #sync-btn {
+      font-size: 16px;
+      color: var(--muted);
+    }
+
     #summary {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -405,6 +410,7 @@
     <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
     <span id="month-label"></span>
     <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    <button class="nav-btn" id="sync-btn" onclick="syncFromPreviousMonth()" title="Copy amounts from previous month">⟲</button>
   </div>
   <div id="summary">
     <div class="summary-card">
@@ -526,6 +532,43 @@
   function save() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
     catch(e) { console.error('Save failed', e); }
+  }
+
+  function getPrevKey(key) {
+    const [y, m] = key.split('-').map(Number);
+    const d = new Date(y, m - 2);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function syncFromPreviousMonth() {
+    const key = getMonthKey(monthOffset);
+    const prevKey = getPrevKey(key);
+    const prevBills = appData[prevKey]?.bills;
+
+    if (!prevBills || prevBills.length === 0) {
+      alert('No previous month data found to copy from.');
+      return;
+    }
+
+    if (!confirm(`Copy amounts, due dates, and categories from ${getMonthLabel(monthOffset - 1)}? This won't change which bills are marked paid.`)) return;
+
+    const current = appData[key];
+
+    prevBills.forEach(prevBill => {
+      const match = current.bills.find(b => b.name.toLowerCase() === prevBill.name.toLowerCase());
+      if (match) {
+        // Update existing bill's amount/due/category, leave paid status untouched
+        match.amount = prevBill.amount;
+        match.due = prevBill.due;
+        match.category = prevBill.category;
+      } else {
+        // Bill didn't exist this month yet — add it, unpaid
+        current.bills.push({ ...prevBill, id: Date.now() + Math.random() });
+      }
+    });
+
+    save();
+    render();
   }
 
   function ensureMonth(key) {
