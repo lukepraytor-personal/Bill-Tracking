@@ -137,6 +137,29 @@
 
     #bill-list { padding: 16px 16px 0; }
 
+    .category-group { margin-bottom: 18px; }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2px 8px;
+    }
+
+    .category-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .category-subtotal {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
     #empty-msg {
       text-align: center;
       color: var(--muted);
@@ -205,6 +228,22 @@
     .edit-form .row2 { display: flex; gap: 8px; margin-top: 8px; }
     .edit-form .row2 input { flex: 1; }
     .edit-form .btns { display: flex; gap: 8px; margin-top: 10px; }
+
+    .edit-form select,
+    #add-form select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      margin-top: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
 
     /* Add bill form */
     #add-form {
@@ -400,6 +439,7 @@
       <input id="new-amount" type="number" placeholder="Amount ($)" />
       <input id="new-due" type="number" placeholder="Due day (1–31)" min="1" max="31" />
     </div>
+    <select id="new-category"></select>
     <div class="btns">
       <button class="btn-primary" onclick="addBill()">Add Bill</button>
       <button class="btn-ghost" onclick="closeAddForm()">Cancel</button>
@@ -427,6 +467,7 @@
       <div class="r-row"><span class="r-key">Bill</span><span class="r-val" id="r-name">—</span></div>
       <div class="r-row"><span class="r-key">Amount</span><span class="r-val" id="r-amount">—</span></div>
       <div class="r-row"><span class="r-key">Due Day</span><span class="r-val" id="r-due">—</span></div>
+      <div class="r-row"><span class="r-key">Category</span><span class="r-val" id="r-category">—</span></div>
       <div class="r-row"><span class="r-key">Action</span><span class="r-val" id="r-action">—</span></div>
     </div>
     <div id="ai-status"></div>
@@ -445,8 +486,9 @@
 
 <script>
   const STORAGE_KEY = 'bill-tracker-v1';
-  const API_KEY = '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';
+  const API_KEY = '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';
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const CATEGORIES = ['Housing', 'Credit Cards', 'Utilities', 'Other'];
 
   let monthOffset = 0;
   let appData = {};
@@ -494,9 +536,9 @@
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       })();
       const srcBills = appData[prevKey]?.bills || [
-        { id: 1, name: 'Rent / Mortgage', amount: '', due: '1' },
-        { id: 2, name: 'Electric', amount: '', due: '15' },
-        { id: 3, name: 'Internet', amount: '', due: '20' },
+        { id: 1, name: 'Rent / Mortgage', amount: '', due: '1', category: 'Housing' },
+        { id: 2, name: 'Electric', amount: '', due: '15', category: 'Utilities' },
+        { id: 3, name: 'Internet', amount: '', due: '20', category: 'Utilities' },
       ];
       appData[key] = { bills: srcBills.map(b => ({...b})), paid: {} };
       save();
@@ -526,38 +568,68 @@
     document.getElementById('p-pct').textContent = `${pct}%`;
     document.getElementById('progress-bar').style.width = `${pct}%`;
 
-    document.querySelectorAll('.bill-card').forEach(el => el.remove());
+    document.querySelectorAll('.category-group').forEach(el => el.remove());
     document.getElementById('empty-msg').style.display = bills.length === 0 ? 'block' : 'none';
 
     const list = document.getElementById('bill-list');
-    const actionBar = document.getElementById('action-bar');
+    const addForm = document.getElementById('add-form');
 
-    bills.forEach(bill => {
-      const isPaid = !!paid[bill.id];
-      const card = document.createElement('div');
-      card.className = 'bill-card' + (isPaid ? ' paid' : '');
-      card.dataset.id = bill.id;
+    // Group bills by category, preserving CATEGORIES order, with any unknown categories at the end
+    const grouped = {};
+    bills.forEach(b => {
+      const cat = b.category || 'Other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(b);
+    });
 
-      card.innerHTML = `
-        <div class="bill-row">
-          <button class="check-btn ${isPaid ? 'checked' : ''}" onclick="togglePaid(${bill.id})">
-            ${isPaid ? '✓' : ''}
-          </button>
-          <div class="bill-info">
-            <div class="bill-name ${isPaid ? 'paid-text' : ''}">${escHtml(bill.name)}</div>
-            <div class="bill-due">${bill.due ? `Due: ${bill.due}${ordinal(bill.due)}` : 'No due date'}</div>
-          </div>
-          <div class="bill-amount ${isPaid ? 'paid-amount' : ''}">
-            ${bill.amount ? `$${parseFloat(bill.amount).toFixed(2)}` : '—'}
-          </div>
-          <div class="bill-actions">
-            <button class="icon-btn" onclick="startEdit(${bill.id})" title="Edit">✎</button>
-            <button class="icon-btn del" onclick="deleteBill(${bill.id})" title="Delete">✕</button>
-          </div>
-        </div>
+    const orderedCats = [
+      ...CATEGORIES.filter(c => grouped[c]),
+      ...Object.keys(grouped).filter(c => !CATEGORIES.includes(c)),
+    ];
+
+    orderedCats.forEach(cat => {
+      const catBills = grouped[cat];
+      const catTotal = catBills.reduce((s,b) => s + (parseFloat(b.amount)||0), 0);
+
+      const groupEl = document.createElement('div');
+      groupEl.className = 'category-group';
+
+      const headerEl = document.createElement('div');
+      headerEl.className = 'category-header';
+      headerEl.innerHTML = `
+        <span class="category-title">${escHtml(cat)}</span>
+        <span class="category-subtotal">${fmt(catTotal)}</span>
       `;
+      groupEl.appendChild(headerEl);
 
-      list.insertBefore(card, document.getElementById('add-form'));
+      catBills.forEach(bill => {
+        const isPaid = !!paid[bill.id];
+        const card = document.createElement('div');
+        card.className = 'bill-card' + (isPaid ? ' paid' : '');
+        card.dataset.id = bill.id;
+
+        card.innerHTML = `
+          <div class="bill-row">
+            <button class="check-btn ${isPaid ? 'checked' : ''}" onclick="togglePaid(${bill.id})">
+              ${isPaid ? '✓' : ''}
+            </button>
+            <div class="bill-info">
+              <div class="bill-name ${isPaid ? 'paid-text' : ''}">${escHtml(bill.name)}</div>
+              <div class="bill-due">${bill.due ? `Due: ${bill.due}${ordinal(bill.due)}` : 'No due date'}</div>
+            </div>
+            <div class="bill-amount ${isPaid ? 'paid-amount' : ''}">
+              ${bill.amount ? `$${parseFloat(bill.amount).toFixed(2)}` : '—'}
+            </div>
+            <div class="bill-actions">
+              <button class="icon-btn" onclick="startEdit(${bill.id})" title="Edit">✎</button>
+              <button class="icon-btn del" onclick="deleteBill(${bill.id})" title="Delete">✕</button>
+            </div>
+          </div>
+        `;
+        groupEl.appendChild(card);
+      });
+
+      list.insertBefore(groupEl, addForm);
     });
   }
 
@@ -590,6 +662,9 @@
     const bill = appData[key].bills.find(b => b.id === id);
     if (!bill) return;
     const card = document.querySelector(`.bill-card[data-id="${id}"]`);
+    const catOptions = CATEGORIES.map(c =>
+      `<option value="${escHtml(c)}" ${bill.category === c ? 'selected' : ''}>${escHtml(c)}</option>`
+    ).join('');
     card.innerHTML = `
       <div class="edit-form">
         <input id="edit-name-${id}" type="text" value="${escHtml(bill.name)}" placeholder="Bill name" />
@@ -597,6 +672,7 @@
           <input id="edit-amount-${id}" type="number" value="${bill.amount}" placeholder="Amount ($)" />
           <input id="edit-due-${id}" type="number" value="${bill.due}" placeholder="Due day" min="1" max="31" />
         </div>
+        <select id="edit-category-${id}">${catOptions}</select>
         <div class="btns">
           <button class="btn-primary" onclick="saveEdit(${id})">Save</button>
           <button class="btn-ghost" onclick="render()">Cancel</button>
@@ -613,6 +689,7 @@
     bill.name = document.getElementById(`edit-name-${id}`).value.trim() || bill.name;
     bill.amount = document.getElementById(`edit-amount-${id}`).value;
     bill.due = document.getElementById(`edit-due-${id}`).value;
+    bill.category = document.getElementById(`edit-category-${id}`).value;
     save(); render();
   }
 
@@ -622,6 +699,7 @@
     document.getElementById('new-name').value = '';
     document.getElementById('new-amount').value = '';
     document.getElementById('new-due').value = '';
+    document.getElementById('new-category').innerHTML = CATEGORIES.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
     document.getElementById('new-name').focus();
   }
 
@@ -635,8 +713,9 @@
     if (!name) { document.getElementById('new-name').focus(); return; }
     const amount = document.getElementById('new-amount').value;
     const due = document.getElementById('new-due').value;
+    const category = document.getElementById('new-category').value || 'Other';
     const key = getMonthKey(monthOffset);
-    appData[key].bills.push({ id: Date.now(), name, amount, due });
+    appData[key].bills.push({ id: Date.now(), name, amount, due, category });
     save(); closeAddForm(); render();
   }
 
@@ -689,6 +768,7 @@
     const systemPrompt = `You are a bill tracking assistant. Extract bill info from the user's message and return ONLY a JSON object with no markdown, no explanation.
 
 Current bills in the tracker: ${billNames || 'none yet'}
+Available categories: ${CATEGORIES.join(', ')}
 
 Return this exact JSON shape:
 {
@@ -696,6 +776,7 @@ Return this exact JSON shape:
   "name": "bill name (match existing name if possible)",
   "amount": 123.45 or null,
   "due": "day of month as number string like 8" or null,
+  "category": "one of the available categories, best guess if new bill",
   "matched_existing": true or false
 }
 
@@ -704,6 +785,7 @@ Rules:
 - If it's a new bill not in the list, action = "add_new"  
 - If they're updating info on an existing bill, action = "update"
 - Match bill names loosely (electric = Electric, rent = Rent / Mortgage)
+- For category: Rent/Mortgage = Housing, electric/water/gas/internet/phone = Utilities, any credit card = Credit Cards, anything else = Other
 - Only return the JSON object, nothing else`;
 
     try {
@@ -732,6 +814,7 @@ Rules:
       document.getElementById('r-name').textContent = aiParsed.name || '—';
       document.getElementById('r-amount').textContent = aiParsed.amount != null ? `$${parseFloat(aiParsed.amount).toFixed(2)}` : '—';
       document.getElementById('r-due').textContent = aiParsed.due ? `${aiParsed.due}${ordinal(aiParsed.due)} of month` : '—';
+      document.getElementById('r-category').textContent = aiParsed.category || 'Other';
 
       const actionLabels = {
         mark_paid: '✓ Mark as paid',
@@ -766,17 +849,18 @@ Rules:
       } else {
         // Bill doesn't exist yet — add it and mark paid
         const id = Date.now();
-        appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '' });
+        appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '', category: aiParsed.category || 'Other' });
         appData[key].paid[id] = true;
       }
     } else if (aiParsed.action === 'add_new') {
       const id = Date.now();
-      appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '' });
+      appData[key].bills.push({ id, name: aiParsed.name, amount: aiParsed.amount != null ? String(aiParsed.amount) : '', due: aiParsed.due || '', category: aiParsed.category || 'Other' });
     } else if (aiParsed.action === 'update') {
       const match = bills.find(b => b.name.toLowerCase().includes(aiParsed.name.toLowerCase().split(' ')[0]));
       if (match) {
         if (aiParsed.amount != null) match.amount = String(aiParsed.amount);
         if (aiParsed.due) match.due = aiParsed.due;
+        if (aiParsed.category) match.category = aiParsed.category;
       }
     }
 
